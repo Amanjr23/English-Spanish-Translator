@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>English → Spanish</title>
+  <style>
+    body{font-family:system-ui;max-width:760px;margin:40px auto;padding:0 16px}
+    textarea{width:100%;min-height:140px;font-size:16px;padding:12px}
+    .row{display:flex;gap:12px;align-items:center;margin:12px 0}
+    button{padding:10px 16px;cursor:pointer;border-radius:8px;border:1px solid #ccc;background:#f8f8f8}
+    output{display:block;white-space:pre-wrap;border:1px solid #e6e6e6;padding:12px;border-radius:8px;min-height:100px;background:#fafafa}
+    .muted{opacity:.7}
+  </style>
+</head>
+<body>
+  <h1>English → Spanish</h1>
+  <label for="src">Enter English text</label>
+  <textarea id="src" placeholder="Type here..."></textarea>
+  <div class="row">
+    <button id="btn">Translate</button>
+    <span id="status" class="muted" aria-live="polite"></span>
+  </div>
+  <label>Spanish output</label>
+  <output id="out"></output>
+
+  <script>
+    const API = "/translate"; // SAME ORIGIN — important!
+
+    const btn = document.getElementById("btn");
+    const out = document.getElementById("out");
+    const status = document.getElementById("status");
+
+    btn.onclick = async () => {
+      const text = document.getElementById("src").value.trim();
+      if (!text) return;
+
+      status.textContent = "Translating… (first call may take a few seconds)";
+      out.textContent = "";
+
+      try {
+        const res = await fetch(API, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text })
+        });
+
+        // Show details even on errors to avoid generic "Failed to fetch"
+        if (!res.ok) {
+          const msg = await res.text();
+          throw new Error(`HTTP ${res.status}: ${msg}`);
+        }
+
+        const data = await res.json();
+        out.textContent = data.translation || "(no result)";
+      } catch (e) {
+        out.textContent = "Error: " + e.message;
+        console.error("Translate error:", e);
+      } finally {
+        status.textContent = "";
+      }
+    };
+  </script>
+</body>
+</html>
